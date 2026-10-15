@@ -98,7 +98,7 @@ public class LinkedChain<T>
         }
         T result = firstNode.data;
         firstNode = firstNode.next;
-        numberOfEntries--;
+        numberOfEntries = numberOfEntires - 1;
         return result;
     }
 
