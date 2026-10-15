@@ -21,7 +21,7 @@ public class PlaylistTest {
         song3 = new Song("s3", "Song Three", "Artist A", 100, true, "melancholy");
     }
 
-    // ----- constructor / getId / getName -----
+    // ----- constructor -----
 
     @Test
     public void testConstructorNormal() {

@@ -19,7 +19,7 @@ public class PlaylistRuleTest {
         noMood = new Song("s3", "No Mood", "Artist C", 120, false, null);
     }
 
-    // ===== BpmRange =====
+    // ----- BpmRange -----
 
     @Test
     public void testBpmRangeConstructor() {
@@ -65,7 +65,7 @@ public class PlaylistRuleTest {
         new BpmRange(100, 150).validate(null);
     }
 
-    // ===== NoExplicit =====
+    // ----- NoExplicit -----
 
     @Test
     public void testNoExplicitType() {
@@ -84,7 +84,7 @@ public class PlaylistRuleTest {
         new NoExplicit().validate(null);
     }
 
-    // ===== MoodConsistency =====
+    // ----- MoodConsistency -----
 
     @Test
     public void testMoodConsistencyConstructor() {
@@ -116,7 +116,7 @@ public class PlaylistRuleTest {
         new MoodConsistency("happy").validate(null);
     }
 
-    // ===== NoRepeatArtist =====
+    // ----- NoRepeatArtist -----
 
     @Test
     public void testNoRepeatArtistType() {

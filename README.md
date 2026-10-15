@@ -31,7 +31,7 @@ Group 11: Advay, Krishanth, Tyler
 **Validation Model**
 - Playlist.validate() checks every song against every rule
 - NoRepeatArtist needs the previous song, so validate() tracks it and does that check directly
-- 16 of the spec's 18 bad-input cases are handled; the other two are for nextSong/previousSong
+- 16 of the spec's 18 bad-input cases are handled. The other two are for nextSong/previousSong
 - Validation lives where the spec put it. Constructors check their own fields (`Song`, `Playlist`, `BpmRange`, `MoodConsistency`). `Playlist` checks null songs and rules, duplicate song ids, and duplicate rule types before anything reaches the LinkedChain.
 - **Added during the prototype:** each rule's `validate(Song)` now throws `NullPointerException` for a null song, and `ValidationResult.addViolation` / `Violation` reject a null song or rule type. Before, these crashed with an unexplained NPE further down. Now they fail immediately with a clear message, consistent with the rest of the app.
 
@@ -47,7 +47,7 @@ No modifications. We use addToEnd(), remove(), contains(), size(), isEmpty(), an
 ### What Happened to Our Unknowns?
 
 From the scope doc:
-1. **"How do we store two types in the same collection?"** Generic LinkedChain<T>; `songs` and `rules` use the same class.
+1. **"How do we store two types in the same collection?"** Generic LinkedChain<T> `songs` and `rules` use the same class.
 2. **"How do we validate without blocking?"** validate() is called explicitly after songs are added.
 3. **"How do we handle duplicate rules?"** addRule() throws IllegalArgumentException if a rule of that type already exists.
 4. **"How do we represent rule violations?"** ValidationResult holds a list of Violation (song, rule type) pairs.
@@ -55,7 +55,7 @@ From the scope doc:
 ### What Doesn't Work Yet?
 
 **Not implemented:**
-- nextSong() / previousSong() (deferred to Phase 2; O(n) with a singly-linked list)
+- nextSong() / previousSong() (deferred to Phase 2, O(n) with a singly-linked list)
 - Mode 2 playlist generation (out of scope for MVP)
 - Live suggestions during add (O(n² × r) cost)
 - Collaborative playlists (out of scope)
@@ -96,7 +96,7 @@ n = songs, r = rules, v = violations.
 ### What's Left to Finish the MVP?
 
 1. **nextSong() / previousSong() Implementation** (Phase 2)
-   - Current: LinkedChain is singly-linked; navigation is O(n)
+   - Current: LinkedChain is singly-linked, navigation is O(n)
    - Option A: Keep as-is, document O(n) in spec revision
    - Option B: Switch to doubly-linked LinkedChain (add prev pointer)
    - **Owner: Advay** (data structure)
@@ -150,22 +150,22 @@ For remaining MVP work:
 
 | Class / File | Owner | Contribution |
 |--------------|-------|--------------|
-| Song.java | Krishanth | Wrote; added null/BPM validation |
+| Song.java | Krishanth | Wrote and added null/BPM validation |
 | PlaylistRule.java | Advay | Drafted abstract base class |
-| NoRepeatArtist.java | Tyler | Implemented; noted context dependency |
+| NoRepeatArtist.java | Tyler | Implemented and noted context dependency |
 | BpmRange.java | Advay | Wrote with minBpm/maxBpm bounds |
 | NoExplicit.java | Tyler | Simple boolean flag validator |
 | MoodConsistency.java | Krishanth | Wrote with null safety |
-| ValidationResult.java | Advay | Designed; Violation inner class |
+| ValidationResult.java | Advay | Designed and violation inner class |
 | Playlist.java | Advay | Orchestrator, validate() logic, all bad-input handling |
 | PlaylistApp.java | Krishanth | Wrote MVP-path driver|
 | PlaylistTest.java | Tyler, Advay |
-| SongTest.java | Advay | Split out of the original tests; added getter/equals/toString cases |
-| PlaylistRuleTest.java | Whole team | Split out of the original tests; added null-song cases for each rule |
-| ValidationResultTest.java | Advay | Split out of the original tests; added empty/null/Violation cases |
-| LinkedChain.java | CS 2114 Staff | Provided; used as-is (unmodified) |
+| SongTest.java | Advay | Split out of the original tests and added getter/equals/toString cases |
+| PlaylistRuleTest.java | Whole team | Split out of the original tests and added null-song cases for each rule |
+| ValidationResultTest.java | Advay | Split out of the original tests and added empty/null/Violation cases |
+| LinkedChain.java | CS 2114 Staff | Provided and used as-is (unmodified) |
 | README.md | Tyler | Reflection, next steps, attribution |
-All files were given to Gen AI for review and corrections. 
+All files were given to GenAI for review and corrections. 
 ---
 
 ## GenAI Use

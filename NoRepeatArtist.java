@@ -13,7 +13,7 @@ public class NoRepeatArtist extends PlaylistRule {
     @Override
     public boolean validate(Song song) {
         if (song == null) {
-            throw new NullPointerException("Song cannot be null");
+            throw new NullPointerException("Song cannot be null, must have a value");
         }
         return true;
     }
