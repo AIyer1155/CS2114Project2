@@ -149,7 +149,18 @@ For remaining MVP work:
 | File I/O save() | Save and reload, data integrity check |
 | Console UI menu | Parse user input, execute commands, handle invalid input |
 
+### Task Assignments (Remaining Work)
 
+| Task | Owner | 
+|------|-------|
+| Phase 2a: Doubly-Linked LinkedChain | Tyler  
+| Phase 2b: nextSong/previousSong | Advay 
+| Phase 3: File I/O + persistence | Tyler 
+| Phase 4: Console UI + menu loop | Krishanth 
+| Integration testing | All 
+| Final submission | All 
+
+---
 
 ## Attribution
 
