@@ -191,6 +191,7 @@ All files were given to GenAI for review and corrections.
 - Helped structure test cases (edge cases: empty collection, duplicates, nulls)
 - Suggested Big-O analysis justifications for LinkedChain methods
 - Caught design issue: singly-linked LinkedChain doesn't support O(1) nextSong/previousSong
+- Checked that all files and README matched rubric specs. 
 
 **What we kept:**
 - All rule implementations as designed
