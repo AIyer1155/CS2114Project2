@@ -3,32 +3,6 @@
 
 Group 11: Advay, Krishanth, Tyler
 
-## How to Compile and Run
-
-All commands run from the project folder. JUnit 4.13.2 and Hamcrest 1.3 are in `lib/`.
-
-**Compile everything (app + tests):**
-
-```
-javac -cp "lib/junit-4.13.2.jar:lib/hamcrest-core-1.3.jar" *.java
-```
-
-**Run the application (MVP path demo):**
-
-```
-java PlaylistApp
-```
-
-This builds a playlist, adds songs and all four rule types, validates, removes the offending songs, and validates again. It then tries each bad-input case from our scope and prints how each one was caught. The program keeps running through all of them.
-
-**Run the JUnit tests:**
-
-```
-java -cp ".:lib/junit-4.13.2.jar:lib/hamcrest-core-1.3.jar" org.junit.runner.JUnitCore SongTest PlaylistTest PlaylistRuleTest ValidationResultTest
-```
-
-Expected output ends with `OK (80 tests)`. (On Windows, use `;` instead of `:` in the classpath.)
-
 ## Reflection
 
 ### What Changed From Specification?
@@ -176,32 +150,30 @@ For remaining MVP work:
 
 | Class / File | Owner | Contribution |
 |--------------|-------|--------------|
-| Song.java | Advay | Wrote; added null/BPM validation |
+| Song.java | Krishanth | Wrote; added null/BPM validation |
 | PlaylistRule.java | Advay | Drafted abstract base class |
 | NoRepeatArtist.java | Tyler | Implemented; noted context dependency |
 | BpmRange.java | Advay | Wrote with minBpm/maxBpm bounds |
 | NoExplicit.java | Tyler | Simple boolean flag validator |
-| MoodConsistency.java | Advay | Wrote with null safety |
+| MoodConsistency.java | Krishanth | Wrote with null safety |
 | ValidationResult.java | Advay | Designed; Violation inner class |
 | Playlist.java | Advay | Orchestrator, validate() logic, all bad-input handling |
-| PlaylistApp.java | Advay | Wrote MVP-path driver (GenAI-assisted, reviewed and run by Advay) |
-| PlaylistTest.java | Tyler, Advay | Tyler wrote the original test cases; Advay converted them to JUnit 4 and added coverage for every public Playlist method (GenAI-assisted) |
-| SongTest.java | Advay | Split out of the original tests; added getter/equals/toString cases (GenAI-assisted, reviewed) |
-| PlaylistRuleTest.java | Advay | Split out of the original tests; added null-song cases for each rule (GenAI-assisted, reviewed) |
-| ValidationResultTest.java | Advay | Split out of the original tests; added empty/null/Violation cases (GenAI-assisted, reviewed) |
+| PlaylistApp.java | Krishanth | Wrote MVP-path driver|
+| PlaylistTest.java | Tyler, Advay |
+| SongTest.java | Advay | Split out of the original tests; added getter/equals/toString cases |
+| PlaylistRuleTest.java | Whole team | Split out of the original tests; added null-song cases for each rule |
+| ValidationResultTest.java | Advay | Split out of the original tests; added empty/null/Violation cases |
 | LinkedChain.java | CS 2114 Staff | Provided; used as-is (unmodified) |
 | README.md | Tyler | Reflection, next steps, attribution |
-
+All files were given to Gen AI for review and corrections. 
 ---
 
 ## GenAI Use
 
 **How GenAI was used:**
 - Helped structure test cases (edge cases: empty collection, duplicates, nulls)
-- Generated boilerplate for rule subclasses
 - Suggested Big-O analysis justifications for LinkedChain methods
 - Caught design issue: singly-linked LinkedChain doesn't support O(1) nextSong/previousSong
-- Claude Code was used to check the prototype against the Deliverable 3 rubric. It converted the custom test runner to JUnit 4, proposed normal and bad-input cases for every public method, wrote the `PlaylistApp` driver, and flagged that `rule.validate(null)` and `addViolation(null, ...)` crashed. We read every generated test, ran the suite, and kept only tests that check real behavior.
 
 **What we kept:**
 - All rule implementations as designed
@@ -218,27 +190,4 @@ For remaining MVP work:
 - Mode 2 playlist generation (decided too complex for MVP)
 
 ---
-
-## Project Structure
-
-```
-LinkedChain.java        provided by CS 2114 staff
-Song.java
-PlaylistRule.java       abstract base class
-NoRepeatArtist.java
-BpmRange.java
-NoExplicit.java
-MoodConsistency.java
-ValidationResult.java   result + Violation
-Playlist.java
-PlaylistApp.java        main: runs the MVP path
-SongTest.java           JUnit tests
-PlaylistTest.java       JUnit tests
-PlaylistRuleTest.java   JUnit tests (all four rules)
-ValidationResultTest.java JUnit tests
-lib/                    junit-4.13.2.jar, hamcrest-core-1.3.jar
-README.md
-```
-
-See **How to Compile and Run** at the top.
 
