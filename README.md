@@ -3,6 +3,23 @@
 
 Group 11: Advay, Krishanth, Tyler
 
+## How to Compile and Run
+
+All .java files are in one folder. The tests need JUnit 4.13.2 and Hamcrest 1.3 (junit-4.13.2.jar, hamcrest-core-1.3.jar) in that folder or on the classpath. On Windows, use ; instead of : between jar names.
+
+Compile everything
+
+javac -cp junit-4.13.2.jar:hamcrest-core-1.3.jar *.java
+
+Run the program (builds a playlist, adds rules, validates, edits, validates again, then feeds in bad input)
+
+java PlaylistApp
+
+Run the tests
+
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore SongTest PlaylistTest PlaylistRuleTest ValidationResultTest
+
+Expected: OK (80 tests). The four test classes can also be run from an IDE as JUnit 4 tests.
 ## Reflection
 
 ### What Changed From Specification?
