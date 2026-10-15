@@ -29,6 +29,9 @@ public class BpmRange extends PlaylistRule {
      */
     @Override
     public boolean validate(Song song) {
+        if (song == null) {
+            throw new NullPointerException("Song cannot be null");
+        }
         return song.getBpm() >= minBpm && song.getBpm() <= maxBpm;
     }
 

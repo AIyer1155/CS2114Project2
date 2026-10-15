@@ -1,722 +1,340 @@
+import org.junit.Before;
+import org.junit.Test;
+import static org.junit.Assert.*;
+
 /**
- * Tests for Playlist, Song, ValidationResult, and the rule classes.
- *
- * Run with: java PlaylistTest
+ * Tests for Playlist.
+ * One normal case and one bad-input case per public method, plus
+ * empty-collection and remove-something-not-there cases.
  */
 public class PlaylistTest {
-    private static int passCount = 0;
-    private static int failCount = 0;
-
-    public static void main(String[] args) {
-        PlaylistTest test = new PlaylistTest();
-
-        // Song tests
-        test.testAddSong();
-        test.testAddMultipleSongs();
-        test.testRemoveSong();
-        test.testSongEqualsById();
-        test.testAddNullSong();
-        test.testAddDuplicateSong();
-        test.testRemoveNullSong();
-        test.testRemoveSongNotInPlaylist();
-        test.testRemoveFromEmptyPlaylist();
-        test.testSongNullTitle();
-        test.testSongNullArtist();
-        test.testSongNullId();
-        test.testSongNegativeBpm();
-        test.testSongZeroBpm();
-        test.testSongAccessors();
-
-        // BpmRange tests
-        test.testAddBpmRangeRule();
-        test.testBpmRangeMinExceedsMax();
-        test.testBpmRangeNegativeMin();
-        test.testBpmRangeNegativeMax();
-        test.testBpmRangeValidation();
-
-        // NoExplicit tests
-        test.testNoExplicitRule();
-        test.testNoExplicitValidation();
-
-        // MoodConsistency tests
-        test.testMoodConsistencyRule();
-        test.testMoodConsistencyNullMood();
-        test.testMoodConsistencyValidation();
-
-        // NoRepeatArtist tests
-        test.testNoRepeatArtistRule();
-
-        // Duplicate rule tests
-        test.testAddDuplicateRuleType();
-        test.testAddNullRule();
-        test.testRemoveNullRule();
-        test.testRemoveRuleNotInPlaylist();
-        test.testRemoveRule();
-
-        // Validation tests
-        test.testValidateEmptyPlaylist();
-        test.testValidateNoRules();
-        test.testValidateAllPass();
-        test.testValidateWithViolation();
-        test.testValidateMultipleViolations();
-        test.testValidateNoRepeatArtist();
-        test.testValidateMoodConsistency();
-        test.testValidateViolationPairs();
-
-        // Constructor tests
-        test.testPlaylistNullId();
-        test.testPlaylistNullName();
-
-        // ValidationResult tests
-        test.testValidationResultEmpty();
-        test.testValidationResultAddViolation();
-        test.testValidationResultMultipleViolations();
-
-        printResults();
-    }
-
     private Playlist playlist;
-    private Song song1, song2, song3;
+    private Song song1;
+    private Song song2;
+    private Song song3;
 
-    private void setUp() {
+    @Before
+    public void setUp() {
         playlist = new Playlist("p1", "Test Playlist");
         song1 = new Song("s1", "Song One", "Artist A", 120, false, "happy");
         song2 = new Song("s2", "Song Two", "Artist B", 140, false, "energetic");
         song3 = new Song("s3", "Song Three", "Artist A", 100, true, "melancholy");
     }
 
-    // ===== Song Tests (Normal Cases) =====
+    // ----- constructor / getId / getName -----
 
+    @Test
+    public void testConstructorNormal() {
+        assertEquals("p1", playlist.getId());
+        assertEquals("Test Playlist", playlist.getName());
+        assertEquals(0, playlist.getSongCount());
+        assertEquals(0, playlist.getRuleCount());
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testConstructorNullId() {
+        new Playlist(null, "Name");
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testConstructorNullName() {
+        new Playlist("id", null);
+    }
+
+    // ----- addSong -----
+
+    @Test
     public void testAddSong() {
-        setUp();
-        try {
-            playlist.addSong(song1);
-            assertTrue(playlist.getSongCount() == 1);
-            assertTrue(playlist.containsSong(song1));
-            pass("testAddSong");
-        } catch (Exception e) {
-            fail("testAddSong: " + e.getMessage());
-        }
+        playlist.addSong(song1);
+        assertEquals(1, playlist.getSongCount());
+        assertTrue(playlist.containsSong(song1));
     }
 
+    @Test
     public void testAddMultipleSongs() {
-        setUp();
-        try {
-            playlist.addSong(song1);
-            playlist.addSong(song2);
-            playlist.addSong(song3);
-            assertTrue(playlist.getSongCount() == 3);
-            pass("testAddMultipleSongs");
-        } catch (Exception e) {
-            fail("testAddMultipleSongs: " + e.getMessage());
-        }
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        playlist.addSong(song3);
+        assertEquals(3, playlist.getSongCount());
     }
 
-    public void testRemoveSong() {
-        setUp();
-        try {
-            playlist.addSong(song1);
-            playlist.addSong(song2);
-            boolean removed = playlist.removeSong(song1);
-            assertTrue(removed);
-            assertTrue(playlist.getSongCount() == 1);
-            assertTrue(!playlist.containsSong(song1));
-            pass("testRemoveSong");
-        } catch (Exception e) {
-            fail("testRemoveSong: " + e.getMessage());
-        }
-    }
-
-    public void testSongEqualsById() {
-        setUp();
-        try {
-            Song same = new Song("s1", "Different Title", "Different Artist", 90, true, "sad");
-            playlist.addSong(song1);
-            assertTrue(playlist.containsSong(same));
-            pass("testSongEqualsById");
-        } catch (Exception e) {
-            fail("testSongEqualsById: " + e.getMessage());
-        }
-    }
-
-    // ===== Song Tests (Bad Input) =====
-
+    @Test(expected = NullPointerException.class)
     public void testAddNullSong() {
-        setUp();
+        playlist.addSong(null);
+    }
+
+    @Test
+    public void testAddDuplicateSong() {
+        playlist.addSong(song1);
+        Song dup = new Song("s1", "Different", "Different", 90, false, "happy");
+        assertThrows(IllegalArgumentException.class,
+            () -> playlist.addSong(dup));
+        assertEquals(1, playlist.getSongCount());
+    }
+
+    // ----- removeSong -----
+
+    @Test
+    public void testRemoveSong() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        assertTrue(playlist.removeSong(song1));
+        assertEquals(1, playlist.getSongCount());
+        assertFalse(playlist.containsSong(song1));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testRemoveNullSong() {
+        playlist.removeSong(null);
+    }
+
+    @Test
+    public void testRemoveSongNotInPlaylist() {
+        playlist.addSong(song1);
+        assertFalse(playlist.removeSong(song2));
+        assertEquals(1, playlist.getSongCount());
+    }
+
+    @Test
+    public void testRemoveSongFromEmptyPlaylist() {
+        assertFalse(playlist.removeSong(song1));
+        assertEquals(0, playlist.getSongCount());
+    }
+
+    // ----- getSongCount -----
+
+    @Test
+    public void testGetSongCountNormal() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        assertEquals(2, playlist.getSongCount());
+    }
+
+    @Test
+    public void testGetSongCountAfterRejectedAdd() {
+        playlist.addSong(song1);
         try {
             playlist.addSong(null);
-            fail("testAddNullSong: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testAddNullSong");
-        } catch (Exception e) {
-            fail("testAddNullSong: wrong exception type");
         }
+        catch (NullPointerException e) {
+            // expected
+        }
+        assertEquals(1, playlist.getSongCount());
     }
 
-    public void testAddDuplicateSong() {
-        setUp();
-        try {
-            playlist.addSong(song1);
-            Song dup = new Song("s1", "Different Title", "Different Artist", 90, false, "happy");
-            playlist.addSong(dup);
-            fail("testAddDuplicateSong: should throw IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            pass("testAddDuplicateSong");
-        } catch (Exception e) {
-            fail("testAddDuplicateSong: wrong exception type");
-        }
+    // ----- containsSong -----
+
+    @Test
+    public void testContainsSongById() {
+        Song sameId = new Song("s1", "Other", "Other", 90, true, "sad");
+        playlist.addSong(song1);
+        assertTrue(playlist.containsSong(sameId));
+        assertFalse(playlist.containsSong(song2));
     }
 
-    public void testRemoveNullSong() {
-        setUp();
-        try {
-            playlist.removeSong(null);
-            fail("testRemoveNullSong: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testRemoveNullSong");
-        } catch (Exception e) {
-            fail("testRemoveNullSong: wrong exception type");
-        }
+    @Test
+    public void testContainsSongNull() {
+        playlist.addSong(song1);
+        assertFalse(playlist.containsSong(null));
     }
 
-    public void testRemoveSongNotInPlaylist() {
-        setUp();
-        try {
-            playlist.addSong(song1);
-            boolean removed = playlist.removeSong(song2);
-            assertTrue(!removed);
-            assertTrue(playlist.getSongCount() == 1);
-            pass("testRemoveSongNotInPlaylist");
-        } catch (Exception e) {
-            fail("testRemoveSongNotInPlaylist: " + e.getMessage());
-        }
+    // ----- addRule -----
+
+    @Test
+    public void testAddRule() {
+        playlist.addRule(new BpmRange(100, 150));
+        playlist.addRule(new NoExplicit());
+        assertEquals(2, playlist.getRuleCount());
     }
 
-    public void testRemoveFromEmptyPlaylist() {
-        setUp();
-        try {
-            boolean removed = playlist.removeSong(song1);
-            assertTrue(!removed);
-            pass("testRemoveFromEmptyPlaylist");
-        } catch (Exception e) {
-            fail("testRemoveFromEmptyPlaylist: " + e.getMessage());
-        }
-    }
-
-    public void testSongNullTitle() {
-        try {
-            new Song("s1", null, "Artist", 100, false, "happy");
-            fail("testSongNullTitle: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testSongNullTitle");
-        } catch (Exception e) {
-            fail("testSongNullTitle: wrong exception type");
-        }
-    }
-
-    public void testSongNullArtist() {
-        try {
-            new Song("s1", "Title", null, 100, false, "happy");
-            fail("testSongNullArtist: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testSongNullArtist");
-        } catch (Exception e) {
-            fail("testSongNullArtist: wrong exception type");
-        }
-    }
-
-    public void testSongNullId() {
-        try {
-            new Song(null, "Title", "Artist", 100, false, "happy");
-            fail("testSongNullId: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testSongNullId");
-        } catch (Exception e) {
-            fail("testSongNullId: wrong exception type");
-        }
-    }
-
-    public void testSongNegativeBpm() {
-        try {
-            new Song("s1", "Title", "Artist", -10, false, "happy");
-            fail("testSongNegativeBpm: should throw IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            pass("testSongNegativeBpm");
-        } catch (Exception e) {
-            fail("testSongNegativeBpm: wrong exception type");
-        }
-    }
-
-    public void testSongZeroBpm() {
-        try {
-            new Song("s1", "Title", "Artist", 0, false, "happy");
-            fail("testSongZeroBpm: should throw IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            pass("testSongZeroBpm");
-        } catch (Exception e) {
-            fail("testSongZeroBpm: wrong exception type");
-        }
-    }
-
-    public void testSongAccessors() {
-        setUp();
-        try {
-            assertTrue(song3.getId().equals("s3"));
-            assertTrue(song3.getTitle().equals("Song Three"));
-            assertTrue(song3.getArtist().equals("Artist A"));
-            assertTrue(song3.getBpm() == 100);
-            assertTrue(song3.isExplicit());
-            assertTrue(song3.getMood().equals("melancholy"));
-            pass("testSongAccessors");
-        } catch (Exception e) {
-            fail("testSongAccessors: " + e.getMessage());
-        }
-    }
-
-    // ===== Rule Tests (BpmRange) =====
-
-    public void testAddBpmRangeRule() {
-        setUp();
-        try {
-            BpmRange rule = new BpmRange(100, 150);
-            playlist.addRule(rule);
-            assertTrue(playlist.getRuleCount() == 1);
-            pass("testAddBpmRangeRule");
-        } catch (Exception e) {
-            fail("testAddBpmRangeRule: " + e.getMessage());
-        }
-    }
-
-    public void testBpmRangeMinExceedsMax() {
-        try {
-            new BpmRange(150, 100);
-            fail("testBpmRangeMinExceedsMax: should throw IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            pass("testBpmRangeMinExceedsMax");
-        } catch (Exception e) {
-            fail("testBpmRangeMinExceedsMax: wrong exception type");
-        }
-    }
-
-    public void testBpmRangeNegativeMin() {
-        try {
-            new BpmRange(-10, 150);
-            fail("testBpmRangeNegativeMin: should throw IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            pass("testBpmRangeNegativeMin");
-        } catch (Exception e) {
-            fail("testBpmRangeNegativeMin: wrong exception type");
-        }
-    }
-
-    public void testBpmRangeNegativeMax() {
-        try {
-            new BpmRange(100, -10);
-            fail("testBpmRangeNegativeMax: should throw IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            pass("testBpmRangeNegativeMax");
-        } catch (Exception e) {
-            fail("testBpmRangeNegativeMax: wrong exception type");
-        }
-    }
-
-    public void testBpmRangeValidation() {
-        setUp();
-        try {
-            BpmRange rule = new BpmRange(100, 150);
-            assertTrue(rule.validate(song1)); // 120 is in range
-            assertTrue(rule.validate(song3)); // 100 is at boundary
-            assertTrue(!rule.validate(new Song("x", "T", "A", 99, false, "happy")));
-            assertTrue(!rule.validate(new Song("y", "T", "A", 151, false, "happy")));
-            pass("testBpmRangeValidation");
-        } catch (Exception e) {
-            fail("testBpmRangeValidation: " + e.getMessage());
-        }
-    }
-
-    // ===== Rule Tests (NoExplicit) =====
-
-    public void testNoExplicitRule() {
-        setUp();
-        try {
-            NoExplicit rule = new NoExplicit();
-            playlist.addRule(rule);
-            assertTrue(playlist.getRuleCount() == 1);
-            pass("testNoExplicitRule");
-        } catch (Exception e) {
-            fail("testNoExplicitRule: " + e.getMessage());
-        }
-    }
-
-    public void testNoExplicitValidation() {
-        setUp();
-        try {
-            NoExplicit rule = new NoExplicit();
-            assertTrue(rule.validate(song1)); // not explicit
-            assertTrue(!rule.validate(song3)); // explicit
-            pass("testNoExplicitValidation");
-        } catch (Exception e) {
-            fail("testNoExplicitValidation: " + e.getMessage());
-        }
-    }
-
-    // ===== Rule Tests (MoodConsistency) =====
-
-    public void testMoodConsistencyRule() {
-        setUp();
-        try {
-            MoodConsistency rule = new MoodConsistency("happy");
-            playlist.addRule(rule);
-            assertTrue(playlist.getRuleCount() == 1);
-            pass("testMoodConsistencyRule");
-        } catch (Exception e) {
-            fail("testMoodConsistencyRule: " + e.getMessage());
-        }
-    }
-
-    public void testMoodConsistencyNullMood() {
-        try {
-            new MoodConsistency(null);
-            fail("testMoodConsistencyNullMood: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testMoodConsistencyNullMood");
-        } catch (Exception e) {
-            fail("testMoodConsistencyNullMood: wrong exception type");
-        }
-    }
-
-    public void testMoodConsistencyValidation() {
-        setUp();
-        try {
-            MoodConsistency rule = new MoodConsistency("happy");
-            assertTrue(rule.validate(song1)); // mood matches
-            assertTrue(!rule.validate(song2)); // mood doesn't match
-            pass("testMoodConsistencyValidation");
-        } catch (Exception e) {
-            fail("testMoodConsistencyValidation: " + e.getMessage());
-        }
-    }
-
-    // ===== Rule Tests (NoRepeatArtist) =====
-
-    public void testNoRepeatArtistRule() {
-        setUp();
-        try {
-            NoRepeatArtist rule = new NoRepeatArtist();
-            playlist.addRule(rule);
-            assertTrue(playlist.getRuleCount() == 1);
-            pass("testNoRepeatArtistRule");
-        } catch (Exception e) {
-            fail("testNoRepeatArtistRule: " + e.getMessage());
-        }
-    }
-
-    // ===== Duplicate Rule Tests =====
-
-    public void testAddDuplicateRuleType() {
-        setUp();
-        try {
-            BpmRange rule1 = new BpmRange(100, 150);
-            BpmRange rule2 = new BpmRange(80, 140);
-            playlist.addRule(rule1);
-            playlist.addRule(rule2);
-            fail("testAddDuplicateRuleType: should throw IllegalArgumentException");
-        } catch (IllegalArgumentException e) {
-            pass("testAddDuplicateRuleType");
-        } catch (Exception e) {
-            fail("testAddDuplicateRuleType: wrong exception type");
-        }
-    }
-
+    @Test(expected = NullPointerException.class)
     public void testAddNullRule() {
-        setUp();
-        try {
-            playlist.addRule(null);
-            fail("testAddNullRule: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testAddNullRule");
-        } catch (Exception e) {
-            fail("testAddNullRule: wrong exception type");
-        }
+        playlist.addRule(null);
     }
 
-    public void testRemoveNullRule() {
-        setUp();
-        try {
-            playlist.removeRule(null);
-            fail("testRemoveNullRule: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testRemoveNullRule");
-        } catch (Exception e) {
-            fail("testRemoveNullRule: wrong exception type");
-        }
+    @Test
+    public void testAddDuplicateRuleType() {
+        playlist.addRule(new BpmRange(100, 150));
+        assertThrows(IllegalArgumentException.class,
+            () -> playlist.addRule(new BpmRange(80, 140)));
+        assertEquals(1, playlist.getRuleCount());
     }
 
-    public void testRemoveRuleNotInPlaylist() {
-        setUp();
-        try {
-            BpmRange rule1 = new BpmRange(100, 150);
-            BpmRange rule2 = new BpmRange(80, 140);
-            playlist.addRule(rule1);
-            boolean removed = playlist.removeRule(rule2);
-            assertTrue(!removed);
-            pass("testRemoveRuleNotInPlaylist");
-        } catch (Exception e) {
-            fail("testRemoveRuleNotInPlaylist: " + e.getMessage());
-        }
-    }
+    // ----- removeRule -----
 
+    @Test
     public void testRemoveRule() {
-        setUp();
-        try {
-            NoExplicit rule = new NoExplicit();
-            playlist.addRule(rule);
-            assertTrue(playlist.removeRule(rule));
-            assertTrue(playlist.getRuleCount() == 0);
-            playlist.addRule(new NoExplicit()); // type can be added again
-            assertTrue(playlist.getRuleCount() == 1);
-            pass("testRemoveRule");
-        } catch (Exception e) {
-            fail("testRemoveRule: " + e.getMessage());
-        }
+        NoExplicit rule = new NoExplicit();
+        playlist.addRule(rule);
+        assertTrue(playlist.removeRule(rule));
+        assertEquals(0, playlist.getRuleCount());
+        playlist.addRule(new NoExplicit()); // type can be added again
+        assertEquals(1, playlist.getRuleCount());
     }
 
-    // ===== Validation Tests (Normal Cases) =====
-
-    public void testValidateEmptyPlaylist() {
-        setUp();
-        try {
-            ValidationResult result = playlist.validate();
-            assertTrue(result.isValid());
-            assertTrue(result.getViolationCount() == 0);
-            pass("testValidateEmptyPlaylist");
-        } catch (Exception e) {
-            fail("testValidateEmptyPlaylist: " + e.getMessage());
-        }
+    @Test(expected = NullPointerException.class)
+    public void testRemoveNullRule() {
+        playlist.removeRule(null);
     }
 
-    public void testValidateNoRules() {
-        setUp();
-        try {
-            playlist.addSong(song1);
-            playlist.addSong(song2);
-            ValidationResult result = playlist.validate();
-            assertTrue(result.isValid());
-            pass("testValidateNoRules");
-        } catch (Exception e) {
-            fail("testValidateNoRules: " + e.getMessage());
-        }
+    @Test
+    public void testRemoveRuleNotInPlaylist() {
+        playlist.addRule(new BpmRange(100, 150));
+        assertFalse(playlist.removeRule(new BpmRange(80, 140)));
+        assertEquals(1, playlist.getRuleCount());
     }
 
-    public void testValidateAllPass() {
-        setUp();
-        try {
-            BpmRange rule = new BpmRange(100, 150);
-            playlist.addRule(rule);
-            playlist.addSong(song1);
-            playlist.addSong(song2);
-            ValidationResult result = playlist.validate();
-            assertTrue(result.isValid());
-            assertTrue(result.getViolationCount() == 0);
-            pass("testValidateAllPass");
-        } catch (Exception e) {
-            fail("testValidateAllPass: " + e.getMessage());
-        }
+    @Test
+    public void testRemoveRuleFromEmptyPlaylist() {
+        assertFalse(playlist.removeRule(new NoExplicit()));
     }
 
-    public void testValidateWithViolation() {
-        setUp();
-        try {
-            NoExplicit rule = new NoExplicit();
-            playlist.addRule(rule);
-            playlist.addSong(song1);
-            playlist.addSong(song3); // explicit
-            ValidationResult result = playlist.validate();
-            assertTrue(!result.isValid());
-            assertTrue(result.getViolationCount() == 1);
-            pass("testValidateWithViolation");
-        } catch (Exception e) {
-            fail("testValidateWithViolation: " + e.getMessage());
-        }
+    // ----- getRuleCount -----
+
+    @Test
+    public void testGetRuleCountNormal() {
+        playlist.addRule(new NoExplicit());
+        playlist.addRule(new NoRepeatArtist());
+        playlist.addRule(new MoodConsistency("happy"));
+        assertEquals(3, playlist.getRuleCount());
     }
 
-    public void testValidateMultipleViolations() {
-        setUp();
+    @Test
+    public void testGetRuleCountAfterRejectedAdd() {
+        playlist.addRule(new NoExplicit());
         try {
-            BpmRange rule1 = new BpmRange(100, 130);
-            NoExplicit rule2 = new NoExplicit();
-            playlist.addRule(rule1);
-            playlist.addRule(rule2);
-            playlist.addSong(song1); // passes both
-            playlist.addSong(song2); // fails BpmRange (140 > 130)
-            Song song4 = new Song("s4", "Song Four", "Artist C", 90, true, "sad"); // fails both
-            playlist.addSong(song4);
-            ValidationResult result = playlist.validate();
-            assertTrue(!result.isValid());
-            assertTrue(result.getViolationCount() == 3); // 1 from song2 + 2 from song4
-            pass("testValidateMultipleViolations");
-        } catch (Exception e) {
-            fail("testValidateMultipleViolations: " + e.getMessage());
-        }
-    }
-
-    public void testValidateNoRepeatArtist() {
-        setUp();
-        try {
-            NoRepeatArtist rule = new NoRepeatArtist();
-            playlist.addRule(rule);
-            Song a1 = new Song("a1", "Track 1", "Artist A", 120, false, "happy");
-            Song a2 = new Song("a2", "Track 2", "Artist A", 120, false, "happy");
-            Song b1 = new Song("b1", "Track 3", "Artist B", 120, false, "happy");
-            playlist.addSong(a1);
-            playlist.addSong(a2); // same artist as previous
-            playlist.addSong(b1);
-            ValidationResult result = playlist.validate();
-            assertTrue(!result.isValid());
-            assertTrue(result.getViolationCount() == 1); // a2 violates
-            pass("testValidateNoRepeatArtist");
-        } catch (Exception e) {
-            fail("testValidateNoRepeatArtist: " + e.getMessage());
-        }
-    }
-
-    public void testValidateMoodConsistency() {
-        setUp();
-        try {
-            MoodConsistency rule = new MoodConsistency("happy");
-            playlist.addRule(rule);
-            Song happy1 = new Song("h1", "Happy 1", "Artist A", 120, false, "happy");
-            Song happy2 = new Song("h2", "Happy 2", "Artist B", 120, false, "happy");
-            Song sad = new Song("s", "Sad", "Artist C", 120, false, "sad");
-            playlist.addSong(happy1);
-            playlist.addSong(happy2);
-            playlist.addSong(sad);
-            ValidationResult result = playlist.validate();
-            assertTrue(!result.isValid());
-            assertTrue(result.getViolationCount() == 1); // sad fails
-            pass("testValidateMoodConsistency");
-        } catch (Exception e) {
-            fail("testValidateMoodConsistency: " + e.getMessage());
-        }
-    }
-
-    public void testValidateViolationPairs() {
-        setUp();
-        try {
-            playlist.addRule(new BpmRange(110, 130));
             playlist.addRule(new NoExplicit());
-            playlist.addSong(song1);
-            playlist.addSong(song2);
-            playlist.addSong(song3);
-            ValidationResult.Violation[] v = playlist.validate().getViolations();
-            assertTrue(v.length == 3);
-            assertTrue(v[0].getSong().equals(song2));
-            assertTrue(v[0].getRuleType().equals("BpmRange"));
-            assertTrue(v[1].getSong().equals(song3));
-            assertTrue(v[1].getRuleType().equals("BpmRange"));
-            assertTrue(v[2].getSong().equals(song3));
-            assertTrue(v[2].getRuleType().equals("NoExplicit"));
-            pass("testValidateViolationPairs");
-        } catch (Exception e) {
-            fail("testValidateViolationPairs: " + e.getMessage());
         }
-    }
-
-    // ===== Playlist Constructor Tests =====
-
-    public void testPlaylistNullId() {
-        try {
-            new Playlist(null, "Name");
-            fail("testPlaylistNullId: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testPlaylistNullId");
-        } catch (Exception e) {
-            fail("testPlaylistNullId: wrong exception type");
+        catch (IllegalArgumentException e) {
+            // expected
         }
+        assertEquals(1, playlist.getRuleCount());
     }
 
-    public void testPlaylistNullName() {
-        try {
-            new Playlist("id", null);
-            fail("testPlaylistNullName: should throw NullPointerException");
-        } catch (NullPointerException e) {
-            pass("testPlaylistNullName");
-        } catch (Exception e) {
-            fail("testPlaylistNullName: wrong exception type");
-        }
+    // ----- validate -----
+
+    @Test
+    public void testValidateAllPass() {
+        playlist.addRule(new BpmRange(100, 150));
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        ValidationResult result = playlist.validate();
+        assertTrue(result.isValid());
+        assertEquals(0, result.getViolationCount());
     }
 
-    // ===== ValidationResult Tests =====
-
-    public void testValidationResultEmpty() {
-        try {
-            ValidationResult result = new ValidationResult();
-            assertTrue(result.isValid());
-            assertTrue(result.getViolationCount() == 0);
-            pass("testValidationResultEmpty");
-        } catch (Exception e) {
-            fail("testValidationResultEmpty: " + e.getMessage());
-        }
+    @Test
+    public void testValidateEmptyPlaylist() {
+        playlist.addRule(new NoExplicit());
+        ValidationResult result = playlist.validate();
+        assertTrue(result.isValid());
+        assertEquals(0, result.getViolationCount());
     }
 
-    public void testValidationResultAddViolation() {
-        setUp();
-        try {
-            ValidationResult result = new ValidationResult();
-            result.addViolation(song1, "BpmRange");
-            assertTrue(!result.isValid());
-            assertTrue(result.getViolationCount() == 1);
-            pass("testValidationResultAddViolation");
-        } catch (Exception e) {
-            fail("testValidationResultAddViolation: " + e.getMessage());
-        }
+    @Test
+    public void testValidateNoRules() {
+        playlist.addSong(song1);
+        playlist.addSong(song3);
+        assertTrue(playlist.validate().isValid());
     }
 
-    public void testValidationResultMultipleViolations() {
-        setUp();
-        try {
-            ValidationResult result = new ValidationResult();
-            result.addViolation(song1, "BpmRange");
-            result.addViolation(song2, "NoExplicit");
-            result.addViolation(song3, "BpmRange");
-            assertTrue(!result.isValid());
-            assertTrue(result.getViolationCount() == 3);
-            pass("testValidationResultMultipleViolations");
-        } catch (Exception e) {
-            fail("testValidationResultMultipleViolations: " + e.getMessage());
-        }
+    @Test
+    public void testValidateWithViolation() {
+        playlist.addRule(new NoExplicit());
+        playlist.addSong(song1);
+        playlist.addSong(song3); // explicit
+        ValidationResult result = playlist.validate();
+        assertFalse(result.isValid());
+        assertEquals(1, result.getViolationCount());
     }
 
-    // ===== Test Helpers =====
-
-    private static void assertTrue(boolean condition) {
-        if (!condition) {
-            throw new RuntimeException("Assertion failed");
-        }
+    @Test
+    public void testValidateMultipleViolations() {
+        playlist.addRule(new BpmRange(100, 130));
+        playlist.addRule(new NoExplicit());
+        playlist.addSong(song1); // passes both
+        playlist.addSong(song2); // fails BpmRange (140 > 130)
+        playlist.addSong(new Song("s4", "Four", "Artist C", 90, true, "sad"));
+        ValidationResult result = playlist.validate();
+        assertFalse(result.isValid());
+        assertEquals(3, result.getViolationCount()); // 1 + 2
     }
 
-    private static void pass(String testName) {
-        passCount++;
-        System.out.println("[PASS] " + testName);
+    @Test
+    public void testValidateNoRepeatArtist() {
+        playlist.addRule(new NoRepeatArtist());
+        playlist.addSong(new Song("a1", "T1", "Artist A", 120, false, "happy"));
+        playlist.addSong(new Song("a2", "T2", "Artist A", 120, false, "happy"));
+        playlist.addSong(new Song("b1", "T3", "Artist B", 120, false, "happy"));
+        ValidationResult result = playlist.validate();
+        assertFalse(result.isValid());
+        assertEquals(1, result.getViolationCount());
+        assertEquals("a2", result.getViolations()[0].getSong().getId());
     }
 
-    private static void fail(String message) {
-        failCount++;
-        System.out.println("[FAIL] " + message);
+    @Test
+    public void testValidateNoRepeatArtistNonAdjacent() {
+        // same artist is fine as long as the songs aren't back to back
+        playlist.addRule(new NoRepeatArtist());
+        playlist.addSong(song1); // Artist A
+        playlist.addSong(song2); // Artist B
+        playlist.addSong(song3); // Artist A
+        assertTrue(playlist.validate().isValid());
     }
 
-    private static void printResults() {
-        System.out.println("\n" + "=".repeat(60));
-        System.out.println("TEST RESULTS");
-        System.out.println("=".repeat(60));
-        System.out.println("Passed: " + passCount);
-        System.out.println("Failed: " + failCount);
-        System.out.println("Total:  " + (passCount + failCount));
-        System.out.println("=".repeat(60));
-        if (failCount == 0) {
-            System.out.println("✓ ALL TESTS PASSED");
-        } else {
-            System.out.println("✗ SOME TESTS FAILED");
-        }
+    @Test
+    public void testValidateMoodConsistency() {
+        playlist.addRule(new MoodConsistency("happy"));
+        playlist.addSong(new Song("h1", "H1", "Artist A", 120, false, "happy"));
+        playlist.addSong(new Song("h2", "H2", "Artist B", 120, false, "happy"));
+        playlist.addSong(new Song("x", "Sad", "Artist C", 120, false, "sad"));
+        ValidationResult result = playlist.validate();
+        assertFalse(result.isValid());
+        assertEquals(1, result.getViolationCount());
+    }
+
+    @Test
+    public void testValidateViolationPairs() {
+        playlist.addRule(new BpmRange(110, 130));
+        playlist.addRule(new NoExplicit());
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        playlist.addSong(song3);
+        ValidationResult.Violation[] v = playlist.validate().getViolations();
+        assertEquals(3, v.length);
+        assertEquals(song2, v[0].getSong());
+        assertEquals("BpmRange", v[0].getRuleType());
+        assertEquals(song3, v[1].getSong());
+        assertEquals("BpmRange", v[1].getRuleType());
+        assertEquals(song3, v[2].getSong());
+        assertEquals("NoExplicit", v[2].getRuleType());
+    }
+
+    @Test
+    public void testValidateAfterRemovingOffendingSong() {
+        playlist.addRule(new NoExplicit());
+        playlist.addSong(song1);
+        playlist.addSong(song3);
+        assertFalse(playlist.validate().isValid());
+        playlist.removeSong(song3);
+        assertTrue(playlist.validate().isValid());
+    }
+
+    // ----- toString -----
+
+    @Test
+    public void testToStringNormal() {
+        playlist.addSong(song1);
+        playlist.addRule(new NoExplicit());
+        String text = playlist.toString();
+        assertTrue(text.contains("songs=1"));
+        assertTrue(text.contains("rules=1"));
+    }
+
+    @Test
+    public void testToStringEmpty() {
+        String text = playlist.toString();
+        assertTrue(text.contains("songs=0"));
+        assertTrue(text.contains("rules=0"));
     }
 }

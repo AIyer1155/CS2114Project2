@@ -9,6 +9,7 @@ public abstract class PlaylistRule {
      *
      * @param song the song to validate
      * @return true if the song passes this rule, false otherwise
+     * @throws NullPointerException if song is null
      */
     public abstract boolean validate(Song song);
 

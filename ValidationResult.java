@@ -23,6 +23,7 @@ public class ValidationResult {
      *
      * @param song the song that violated a rule
      * @param ruleType the rule type name
+     * @throws NullPointerException if song or ruleType is null
      */
     public void addViolation(Song song, String ruleType) {
         violations.addToEnd(new Violation(song, ruleType));
@@ -63,7 +64,16 @@ public class ValidationResult {
         private Song song;
         private String ruleType;
 
+        /**
+         * @throws NullPointerException if song or ruleType is null
+         */
         public Violation(Song song, String ruleType) {
+            if (song == null) {
+                throw new NullPointerException("Song cannot be null");
+            }
+            if (ruleType == null) {
+                throw new NullPointerException("Rule type cannot be null");
+            }
             this.song = song;
             this.ruleType = ruleType;
         }
