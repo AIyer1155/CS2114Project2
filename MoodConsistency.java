@@ -24,7 +24,7 @@ public class MoodConsistency extends PlaylistRule {
     @Override
     public boolean validate(Song song) {
         if (song == null) {
-            throw new NullPointerException("Song cannot be null");
+            throw new NullPointerException("Song can't be null");
         }
         return song.getMood() != null && song.getMood().equals(requiredMood);
     }
