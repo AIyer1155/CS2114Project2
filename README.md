@@ -53,9 +53,8 @@ Expected: OK (80 tests). The four test classes can also be run from an IDE as JU
 - **Added during the prototype:** each rule's `validate(Song)` now throws `NullPointerException` for a null song, and `ValidationResult.addViolation` / `Violation` reject a null song or rule type. Before, these crashed with an unexplained NPE further down. Now they fail immediately with a clear message, consistent with the rest of the app.
 
 **Tests**
-- Our first test file was a hand-written runner with its own `main` and pass/fail counters. We converted it to JUnit 4 (`@Test`, `@Before`, `assertThrows`) and split it into one test file per app class: `SongTest`, `PlaylistTest`, `PlaylistRuleTest` (all four rules), and `ValidationResultTest`.
 - Every public app method has at least one normal case and one bad-input case. The tests also cover empty collections (validate/remove/getViolations on an empty playlist or result) and removing a song or rule that isn't there.
-- 80 tests, all passing.
+- 80 tests, all passed.
 
 ### What Changed in LinkedChain?
 
