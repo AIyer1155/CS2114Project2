@@ -175,7 +175,7 @@ For remaining MVP work:
 | ValidationResult.java | Advay | Designed and violation inner class |
 | Playlist.java | Advay | Orchestrator, validate() logic, all bad-input handling |
 | PlaylistApp.java | Krishanth | Wrote MVP-path driver|
-| PlaylistTest.java | Tyler, Advay |
+| PlaylistTest.java | Tyler, Advay | Test case for Playlist Methods
 | SongTest.java | Advay | Split out of the original tests and added getter/equals/toString cases |
 | PlaylistRuleTest.java | Whole team | Split out of the original tests and added null-song cases for each rule |
 | ValidationResultTest.java | Advay | Split out of the original tests and added empty/null/Violation cases |
