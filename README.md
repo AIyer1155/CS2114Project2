@@ -111,18 +111,18 @@ n = songs, r = rules, v = violations.
 
 ### What's Left to Finish the MVP?
 
-1. **nextSong() / previousSong() Implementation** (Phase 2)
+1. **nextSong() / previousSong() Implementation** 
    - Current: LinkedChain is singly-linked, navigation is O(n)
    - Option A: Keep as-is, document O(n) in spec revision
    - Option B: Switch to doubly-linked LinkedChain (add prev pointer)
    - **Owner: Advay** (data structure)
 
-2. **Playlist State Persistence** (Phase 3)
+2. **Playlist State Persistence** 
    - Save/load playlists to/from file
    - Serialization of Song and Rule objects
    - **Owner: Tyler** (file I/O, serialization)
 
-3. **Console UI** (Phase 4)
+3. **Console UI** 
    - Menu-driven interface
    - Add songs, add rules, run validation, show results
    - **Owner: Krishanth** (user interface)
@@ -153,10 +153,10 @@ For remaining MVP work:
 
 | Task | Owner | 
 |------|-------|
-| Phase 2a: Doubly-Linked LinkedChain | Tyler  
-| Phase 2b: nextSong/previousSong | Advay 
-| Phase 3: File I/O + persistence | Tyler 
-| Phase 4: Console UI + menu loop | Krishanth 
+| Doubly-Linked LinkedChain | Tyler  
+| nextSong/previousSong | Advay 
+| File I/O + persistence | Tyler 
+| Console UI + menu loop | Krishanth 
 | Integration testing | All 
 | Final submission | All 
 
