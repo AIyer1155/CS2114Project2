@@ -337,4 +337,180 @@ public class PlaylistTest {
         assertTrue(text.contains("songs=0"));
         assertTrue(text.contains("rules=0"));
     }
+
+
+    // ----- navigation: nextSong, previousSong, getCurrentSong -----
+
+    @Test
+    public void testNextSongMovesForward() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        assertNull(playlist.getCurrentSong());
+        assertEquals(song1, playlist.nextSong());
+        assertEquals(song2, playlist.nextSong());
+        assertEquals(song2, playlist.getCurrentSong());
+    }
+
+    @Test(expected = java.util.NoSuchElementException.class)
+    public void testNextSongAtEnd() {
+        playlist.addSong(song1);
+        playlist.nextSong();
+        playlist.nextSong();
+    }
+
+    @Test(expected = java.util.NoSuchElementException.class)
+    public void testNextSongEmptyPlaylist() {
+        playlist.nextSong();
+    }
+
+    @Test
+    public void testPreviousSongMovesBackward() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        playlist.nextSong();
+        playlist.nextSong();
+        assertEquals(song1, playlist.previousSong());
+        assertEquals(song1, playlist.getCurrentSong());
+    }
+
+    @Test(expected = java.util.NoSuchElementException.class)
+    public void testPreviousSongAtStart() {
+        playlist.addSong(song1);
+        playlist.nextSong();
+        playlist.previousSong();
+    }
+
+    @Test(expected = java.util.NoSuchElementException.class)
+    public void testPreviousSongBeforePlaybackStarts() {
+        playlist.addSong(song1);
+        playlist.previousSong();
+    }
+
+    @Test(expected = java.util.NoSuchElementException.class)
+    public void testPreviousSongEmptyPlaylist() {
+        playlist.previousSong();
+    }
+
+    @Test
+    public void testGetCurrentSongBeforePlayback() {
+        playlist.addSong(song1);
+        assertNull(playlist.getCurrentSong());
+    }
+
+    @Test
+    public void testRemoveSongBeforeCurrentKeepsCurrentSong() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        playlist.addSong(song3);
+        playlist.nextSong();
+        playlist.nextSong();
+        assertTrue(playlist.removeSong(song1));
+        assertEquals(song2, playlist.getCurrentSong());
+        assertEquals(song3, playlist.nextSong());
+    }
+
+    @Test
+    public void testRemoveCurrentSongMovesBack() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        playlist.addSong(song3);
+        playlist.nextSong();
+        playlist.nextSong();
+        assertTrue(playlist.removeSong(song2));
+        assertEquals(song1, playlist.getCurrentSong());
+        assertEquals(song3, playlist.nextSong());
+    }
+
+    @Test
+    public void testRemoveSongAfterCurrentLeavesPosition() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        playlist.nextSong();
+        assertTrue(playlist.removeSong(song2));
+        assertEquals(song1, playlist.getCurrentSong());
+    }
+
+    @Test
+    public void testRemoveFirstSongWhileCurrentResetsPlayback() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        playlist.nextSong();
+        playlist.removeSong(song1);
+        assertNull(playlist.getCurrentSong());
+        assertEquals(song2, playlist.nextSong());
+    }
+
+    // ----- getSongs / getRules -----
+
+    @Test
+    public void testGetSongsReturnsCopyInOrder() {
+        playlist.addSong(song1);
+        playlist.addSong(song2);
+        Song[] copy = playlist.getSongs();
+        assertEquals(2, copy.length);
+        assertEquals(song1, copy[0]);
+        assertEquals(song2, copy[1]);
+        copy[0] = null;
+        assertEquals(song1, playlist.getSongs()[0]);
+    }
+
+    @Test
+    public void testGetSongsEmpty() {
+        assertEquals(0, playlist.getSongs().length);
+    }
+
+    @Test
+    public void testGetRulesReturnsCopyInOrder() {
+        BpmRange bpm = new BpmRange(90, 150);
+        NoExplicit clean = new NoExplicit();
+        playlist.addRule(bpm);
+        playlist.addRule(clean);
+        PlaylistRule[] copy = playlist.getRules();
+        assertEquals(2, copy.length);
+        assertSame(bpm, copy[0]);
+        assertSame(clean, copy[1]);
+        copy[0] = null;
+        assertSame(bpm, playlist.getRules()[0]);
+    }
+
+    @Test
+    public void testGetRulesEmpty() {
+        assertEquals(0, playlist.getRules().length);
+    }
+
+    // ----- removeRuleByType -----
+
+    @Test
+    public void testRemoveRuleByType() {
+        playlist.addRule(new BpmRange(90, 150));
+        playlist.addRule(new NoExplicit());
+        assertTrue(playlist.removeRuleByType("BpmRange"));
+        assertEquals(1, playlist.getRuleCount());
+        assertEquals("NoExplicit", playlist.getRules()[0].getType());
+    }
+
+    @Test
+    public void testRemoveRuleByTypeThenAddAgain() {
+        playlist.addRule(new BpmRange(90, 150));
+        playlist.removeRuleByType("BpmRange");
+        playlist.addRule(new BpmRange(60, 80));
+        assertEquals(1, playlist.getRuleCount());
+    }
+
+    @Test
+    public void testRemoveRuleByTypeNotPresent() {
+        playlist.addRule(new NoExplicit());
+        assertFalse(playlist.removeRuleByType("BpmRange"));
+        assertEquals(1, playlist.getRuleCount());
+    }
+
+    @Test
+    public void testRemoveRuleByTypeEmptyPlaylist() {
+        assertFalse(playlist.removeRuleByType("BpmRange"));
+    }
+
+    @Test(expected = NullPointerException.class)
+    public void testRemoveRuleByTypeNull() {
+        playlist.removeRuleByType(null);
+    }
 }

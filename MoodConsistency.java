@@ -32,4 +32,9 @@ public class MoodConsistency extends PlaylistRule {
     public String getRequiredMood() {
         return requiredMood;
     }
+
+    @Override
+    public String toString() {
+        return "MoodConsistency(" + requiredMood + ")";
+    }
 }

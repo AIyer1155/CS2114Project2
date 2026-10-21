@@ -1,12 +1,16 @@
+import java.util.NoSuchElementException;
+
 /**
  * A playlist of songs and the rules they are validated against.
  * Songs and rules are each stored in a LinkedChain.
+ * The playlist also tracks a playback position for nextSong/previousSong.
  */
 public class Playlist {
     private String id;
     private String name;
     private LinkedChain<Song> songs;
     private LinkedChain<PlaylistRule> rules;
+    private int currentIndex;
 
     /**
      * Creates an empty playlist.
@@ -26,10 +30,11 @@ public class Playlist {
         this.name = name;
         this.songs = new LinkedChain<>();
         this.rules = new LinkedChain<>();
+        this.currentIndex = -1;
     }
 
     /**
-     * Adds a song to the playlist.
+     * Adds a song to the end of the playlist. O(n).
      *
      * @param song the song to add (must not be null)
      * @throws NullPointerException if song is null
@@ -47,7 +52,9 @@ public class Playlist {
     }
 
     /**
-     * Removes a song from the playlist.
+     * Removes a song from the playlist. If the song is at or before the
+     * playback position, the position moves back so the same song stays
+     * current. O(n).
      *
      * @param song the song to remove (must not be null)
      * @return true if removed, false if not found
@@ -57,7 +64,25 @@ public class Playlist {
         if (song == null) {
             throw new NullPointerException("Song cannot be null");
         }
-        return songs.remove(song);
+        int position = indexOf(song);
+        if (position < 0) {
+            return false;
+        }
+        songs.remove(song);
+        if (position <= currentIndex) {
+            currentIndex--;
+        }
+        return true;
+    }
+
+    private int indexOf(Song song) {
+        Song[] array = getSongs();
+        for (int i = 0; i < array.length; i++) {
+            if (array[i].equals(song)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -75,6 +100,57 @@ public class Playlist {
     }
 
     /**
+     * Returns a copy of the songs in playlist order. O(n).
+     */
+    public Song[] getSongs() {
+        Song[] array = new Song[songs.size()];
+        songs.toArray(array);
+        return array;
+    }
+
+    /**
+     * Moves playback to the next song and returns it. The first call
+     * starts at the first song. O(n).
+     *
+     * @return the next song
+     * @throws NoSuchElementException if there is no next song (including
+     *         an empty playlist)
+     */
+    public Song nextSong() {
+        if (currentIndex + 1 >= songs.size()) {
+            throw new NoSuchElementException("No more songs");
+        }
+        currentIndex++;
+        return songs.get(currentIndex);
+    }
+
+    /**
+     * Moves playback to the previous song and returns it. O(n).
+     *
+     * @return the previous song
+     * @throws NoSuchElementException if there is no previous song (at the
+     *         first song, before playback starts, or on an empty playlist)
+     */
+    public Song previousSong() {
+        if (currentIndex <= 0) {
+            throw new NoSuchElementException("No previous songs");
+        }
+        currentIndex--;
+        return songs.get(currentIndex);
+    }
+
+    /**
+     * Returns the song at the playback position, or null if playback has
+     * not started. O(n).
+     */
+    public Song getCurrentSong() {
+        if (currentIndex < 0) {
+            return null;
+        }
+        return songs.get(currentIndex);
+    }
+
+    /**
      * Adds a validation rule to the playlist.
      * At most one rule of each type is allowed.
      *
@@ -86,9 +162,7 @@ public class Playlist {
         if (rule == null) {
             throw new NullPointerException("Rule cannot be null");
         }
-        PlaylistRule[] ruleArray = new PlaylistRule[rules.size()];
-        rules.toArray(ruleArray);
-        for (PlaylistRule existing : ruleArray) {
+        for (PlaylistRule existing : getRules()) {
             if (existing.getType().equals(rule.getType())) {
                 throw new IllegalArgumentException(
                     "Rule type " + rule.getType() +
@@ -99,7 +173,7 @@ public class Playlist {
     }
 
     /**
-     * Removes a rule from the playlist.
+     * Removes a rule from the playlist, matching by object identity.
      *
      * @param rule the rule to remove (must not be null)
      * @return true if removed, false if not found
@@ -110,6 +184,34 @@ public class Playlist {
             throw new NullPointerException("Rule cannot be null");
         }
         return rules.remove(rule);
+    }
+
+    /**
+     * Removes the rule with the given type name. O(r).
+     *
+     * @param type the rule type, such as "BpmRange" (must not be null)
+     * @return true if a rule was removed, false if no rule has that type
+     * @throws NullPointerException if type is null
+     */
+    public boolean removeRuleByType(String type) {
+        if (type == null) {
+            throw new NullPointerException("Rule type cannot be null");
+        }
+        for (PlaylistRule rule : getRules()) {
+            if (rule.getType().equals(type)) {
+                return rules.remove(rule);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns a copy of the rules in the order they were added. O(r).
+     */
+    public PlaylistRule[] getRules() {
+        PlaylistRule[] array = new PlaylistRule[rules.size()];
+        rules.toArray(array);
+        return array;
     }
 
     /**
@@ -132,11 +234,8 @@ public class Playlist {
             return result;
         }
 
-        Song[] songArray = new Song[songs.size()];
-        songs.toArray(songArray);
-
-        PlaylistRule[] ruleArray = new PlaylistRule[rules.size()];
-        rules.toArray(ruleArray);
+        Song[] songArray = getSongs();
+        PlaylistRule[] ruleArray = getRules();
 
         Song prevSong = null;
         for (Song song : songArray) {

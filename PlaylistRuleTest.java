@@ -134,4 +134,24 @@ public class PlaylistRuleTest {
     public void testNoRepeatArtistValidateNull() {
         new NoRepeatArtist().validate(null);
     }
+
+
+    // ----- toString -----
+
+    @Test
+    public void testBpmRangeToString() {
+        assertEquals("BpmRange(90-150)", new BpmRange(90, 150).toString());
+    }
+
+    @Test
+    public void testMoodConsistencyToString() {
+        assertEquals("MoodConsistency(chill)",
+            new MoodConsistency("chill").toString());
+    }
+
+    @Test
+    public void testNoExplicitAndNoRepeatArtistToString() {
+        assertEquals("NoExplicit", new NoExplicit().toString());
+        assertEquals("NoRepeatArtist", new NoRepeatArtist().toString());
+    }
 }

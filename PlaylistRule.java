@@ -19,4 +19,9 @@ public abstract class PlaylistRule {
     public String getType() {
         return ruleType;
     }
+
+    @Override
+    public String toString() {
+        return ruleType;
+    }
 }

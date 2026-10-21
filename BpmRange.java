@@ -42,4 +42,9 @@ public class BpmRange extends PlaylistRule {
     public int getMaxBpm() {
         return maxBpm;
     }
+
+    @Override
+    public String toString() {
+        return "BpmRange(" + minBpm + "-" + maxBpm + ")";
+    }
 }

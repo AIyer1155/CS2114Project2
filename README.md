@@ -1,210 +1,140 @@
 # Controlled Chaos: Smart Playlist Manager
-## CS 2114 Project 2 – Deliverable 3 Prototype + Tests
+## CS 2114 Project 2, Deliverable 4: Final Build
 
 Group 11: Advay, Krishanth, Tyler
 
+A text-menu program for building a playlist and checking it against rules (BPM range, no explicit songs, one mood, no artist twice in a row). It can also generate a playlist that satisfies the rules from a song library. Songs, rules, and violations are all stored in the provided `LinkedChain<T>`, unmodified.
+
+![System diagram](docs/system-diagram.svg)
+
 ## How to Compile and Run
 
-All .java files are in one folder. The tests need JUnit 4.13.2 and Hamcrest 1.3 (junit-4.13.2.jar, hamcrest-core-1.3.jar) in that folder or on the classpath. On Windows, use ; instead of : between jar names.
+All `.java` files are in one folder with `junit-4.13.2.jar` and `hamcrest-core-1.3.jar`. If the jars are missing:
+```
+curl -O https://repo1.maven.org/maven2/junit/junit/4.13.2/junit-4.13.2.jar
+curl -O https://repo1.maven.org/maven2/org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar
+```
+On Windows, use `;` instead of `:` between jar names.
 
-Compile everything
-
+**Compile**
+```
 javac -cp junit-4.13.2.jar:hamcrest-core-1.3.jar *.java
+```
 
-Run the program (builds a playlist, adds rules, validates, edits, validates again, then feeds in bad input)
-
+**Run the program** (interactive menu; option 14 loads 10 sample songs)
+```
 java PlaylistApp
+```
 
-Run the tests
+**Run the scripted demo** (a fixed run of the MVP path plus 12 bad inputs)
+```
+java PlaylistDemo
+```
 
-java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore SongTest PlaylistTest PlaylistRuleTest ValidationResultTest
+**Run the tests.** Expected output: `OK (193 tests)`.
+```
+java -cp .:junit-4.13.2.jar:hamcrest-core-1.3.jar org.junit.runner.JUnitCore SongTest PlaylistTest PlaylistRuleTest ValidationResultTest SongLibraryTest PlaylistGeneratorTest PlaylistAppTest
+```
+They also run from an IDE as JUnit 4 tests. If JUnit reports "No runnable methods", delete the old `.class` files (`rm -f *.class`) and recompile.
 
-Expected: OK (80 tests). The four test classes can also be run from an IDE as JUnit 4 tests.
-## Reflection
+## What It Does
 
-### What Changed From Specification?
+| Menu | Feature |
+|---|---|
+| 1 to 3 | Add, remove, and list songs in the library |
+| 4 to 6 | Add a library song to the playlist, remove it, list the playlist (`>` marks the current song) |
+| 7 to 9 | Add, remove, and list rules. One rule per type. |
+| 10 | Validate: PASS or FAIL for each rule, with the songs that broke it |
+| 11, 12 | Next and previous song |
+| 13 | Generate a playlist of a chosen length that satisfies the current rules (replaces the playlist) |
+| 14 | Load 10 sample songs |
 
-**Singly-Linked vs. Doubly-Linked**
-- Spec called for doubly-linked (prev/next pointers) for O(1) `nextSong()`/`previousSong()` navigation
-- Provided LinkedChain is singly-linked (only next pointer)
-- **Resolution**: Kept the provided singly-linked version and deferred nextSong/previousSong to final build.
+**Bad input is reported and never crashes the program.** Examples: a non-numeric, empty, or non-positive BPM re-prompts; a mood outside `[energetic, chill, focus, party]` re-prompts; empty BpmRange parameters print "All rule parameters required before adding"; a second rule of the same type is rejected; an unknown song id prints "Song not found in playlist"; next or previous at either end prints a message; an empty playlist prints "Playlist is empty"; an invalid menu choice prints the valid range.
 
-**LinkedChain Methods Used**
-- Spec expected `add()` at O(1), but `add()` prepends to the front
-- Used `addToEnd()` instead (O(n)) to keep songs in insertion order
+## Where the LinkedChain Is Used
 
-**Class Structure**
-- All classes built as specified: Song, PlaylistRule (abstract), four concrete rules, Playlist, ValidationResult
-- The spec's GenericLinkedChain is the provided LinkedChain
-- `ValidationResult.getViolations()` returns an array instead of a List, since LinkedChain only exposes `toArray()`
-- Added `PlaylistApp`, a driver with a `main` method, so the MVP path can be run end to end without the (not yet built) console UI
+`LinkedChain.java` is the provided file. The app classes call only its public methods (`addToEnd`, `remove(T)`, `contains`, `get`, `size`, `isEmpty`, `toArray`), and no application logic lives in it. One class, three element types, no type-specific copies:
 
-**LinkedChain Reuse: three element types through one generic class**
-- `LinkedChain<Song>` holds the songs in `Playlist`
-- `LinkedChain<PlaylistRule>` holds the rules in `Playlist`
-- `LinkedChain<ValidationResult.Violation>` holds the violations in `ValidationResult`
-- There are no type-specific copies. All three use the same provided `LinkedChain<T>`, and only through its public methods.
+| Element type | Held in | Purpose |
+|---|---|---|
+| `Song` | `Playlist`, `SongLibrary` | Playlist order; the pool of songs |
+| `PlaylistRule` | `Playlist` | Active rules (`BpmRange`, `NoExplicit`, `MoodConsistency`, `NoRepeatArtist`) |
+| `ValidationResult.Violation` | `ValidationResult` | Which song broke which rule |
 
-**Validation Model**
-- Playlist.validate() checks every song against every rule
-- NoRepeatArtist needs the previous song, so validate() tracks it and does that check directly
-- 16 of the spec's 18 bad-input cases are handled. The other two are for nextSong/previousSong
-- Validation lives where the spec put it. Constructors check their own fields (`Song`, `Playlist`, `BpmRange`, `MoodConsistency`). `Playlist` checks null songs and rules, duplicate song ids, and duplicate rule types before anything reaches the LinkedChain.
-- **Added during the prototype:** each rule's `validate(Song)` now throws `NullPointerException` for a null song, and `ValidationResult.addViolation` / `Violation` reject a null song or rule type. Before, these crashed with an unexplained NPE further down. Now they fail immediately with a clear message, consistent with the rest of the app.
+## Stretch Goal
 
-**Tests**
-- Every public app method has at least one normal case and one bad-input case. The tests also cover empty collections (validate/remove/getViolations on an empty playlist or result) and removing a song or rule that isn't there.
-- 80 tests, all passed.
+**Mode 2 (reached): playlist generation.** `PlaylistGenerator.generate(library, rules, length)` removes songs that break a rule on their own, then shuffles and picks songs, retrying up to 1000 times when `NoRepeatArtist` blocks an ordering. It checks every result with `Playlist.validate()`. If it cannot build a playlist, it returns a `GenerationResult` naming the rules that could not be satisfied.
 
-### What Changed in LinkedChain?
+Dropped from the scope: live position suggestions, GUI, multiple playlists, collaborative playlists.
 
-No modifications. We use addToEnd(), remove(), contains(), size(), isEmpty(), and toArray(). A doubly-linked version is planned for final build.
+## Changes from the Deliverable 2 Spec and the Deliverable 3 Prototype
 
-### What Happened to Our Unknowns?
+| Change | Why |
+|---|---|
+| `nextSong()`, `previousSong()`, `getCurrentSong()` built on the singly-linked `LinkedChain` with `currentIndex` and `get(i)`; O(n), not the spec's O(1). Out of range throws `NoSuchElementException`. | The provided chain has no `prev` pointer. We kept it unmodified rather than rewrite it. All 18 of the spec's bad-input cases are now handled. |
+| `Playlist.removeSong` shifts `currentIndex` when a song at or before it is removed. | Otherwise the current song changes silently. Tested in `PlaylistTest`. |
+| Added `removeRuleByType(String)`, `getSongs()`, `getRules()`. | The menu needs to remove a rule by type, and the identity-based `removeRule` cannot do that. `getSongs()` and `getRules()` return copies, so callers cannot touch the chains. |
+| Added `toString()` to each rule class. | The menu prints rules, for example `BpmRange(90-150)`. |
+| Added `SongLibrary`, `PlaylistGenerator`, `GenerationResult`. | Mode 2. |
+| `PlaylistApp` is now the interactive menu. The old fixed script is `PlaylistDemo`. | D3 only ran a script; the final needs real input and re-prompting. |
+| The menu enforces the scope's mood list and re-prompts. `Song` still accepts any mood. | Matches the scope; the class stays permissive for callers. |
 
-From the scope doc:
-1. **"How do we store two types in the same collection?"** Generic LinkedChain<T> `songs` and `rules` use the same class.
-2. **"How do we validate without blocking?"** validate() is called explicitly after songs are added.
-3. **"How do we handle duplicate rules?"** addRule() throws IllegalArgumentException if a rule of that type already exists.
-4. **"How do we represent rule violations?"** ValidationResult holds a list of Violation (song, rule type) pairs.
+Unchanged from D3: `NoRepeatArtist` is checked in `Playlist.validate()` (it needs the previous song); duplicate song ids are rejected (spec over scope); `getViolations()` returns an array.
 
-### What Doesn't Work Yet?
-
-**Not implemented:**
-- nextSong() / previousSong() (deferred to Phase 2, O(n) with a singly-linked list)
-- Mode 2 playlist generation (out of scope for MVP)
-- Live suggestions during add (O(n² × r) cost)
-- Collaborative playlists (out of scope)
-
-**Working:**
-- addSong, removeSong, addRule, removeRule, validate
-- 16 of 18 bad-input cases from the spec (the two for nextSong/previousSong are deferred)
-- All 4 rule types: NoRepeatArtist, BpmRange, NoExplicit, MoodConsistency
-- `PlaylistApp` runs the full MVP path
-- 80 JUnit tests across 4 test files, all passing
-
-**Known limitation:**
-- `removeRule` matches by object identity, because `PlaylistRule` doesn't override `equals`. You must pass the same rule instance you added. Removing "the BpmRange rule" by type isn't supported yet.
-
-### Big-O of App Methods
+## Big-O
 
 n = songs, r = rules, v = violations.
 
-| Method | Big-O | Why |
-|--------|-------|-----|
-| `Playlist.addSong` | O(n) | `contains()` duplicate check + `addToEnd()` |
-| `Playlist.removeSong` | O(n) | `remove(T)` scans the chain |
-| `Playlist.containsSong` | O(n) | `contains()` scans the chain |
-| `Playlist.getSongCount` / `getRuleCount` | O(1) | `size()` |
-| `Playlist.addRule` | O(r) | `toArray()` + type scan + `addToEnd()` |
-| `Playlist.removeRule` | O(r) | `remove(T)` scans the chain |
-| `Playlist.validate` | O(n·r + v²) | n·r rule checks. Each violation is `addToEnd()`'d, which is O(v), but v is at most n·r and usually small. |
-| `ValidationResult.addViolation` | O(v) | `addToEnd()` |
-| `ValidationResult.getViolations` | O(v) | `toArray()` |
-| Rule `validate(Song)` | O(1) | Compares fields on one song |
+| Method | Actual | Note |
+|---|---|---|
+| `Playlist.addSong` | O(n) | `contains()` scan plus `addToEnd()`; spec said O(1) |
+| `Playlist.removeSong` | O(n) | index scan, then `remove(T)` |
+| `Playlist.nextSong`, `previousSong`, `getCurrentSong` | O(n) | `get(i)` walks the chain; spec said O(1) |
+| `Playlist.addRule`, `removeRule`, `removeRuleByType` | O(r) | |
+| `Playlist.getSongs`, `getRules` | O(n), O(r) | copy |
+| `Playlist.validate` | O(n·r + v²) | each violation costs O(v) via `addToEnd()` |
+| `SongLibrary.addSong`, `removeSong`, `findById` | O(n) | |
+| `PlaylistGenerator.generate` | O(attempts · (n + length²) + n·r) | `addSong` costs O(n) inside the loop; at most 1000 attempts |
 
-**Compared to the spec:** the spec estimated O(1) for adding a song, assuming `add()`. We use `addToEnd()` plus a duplicate check, so `addSong` is O(n). `validate` matches the spec's O(n·r) for the rule checks.
+## Known Limitations
 
----
-
-## Next Steps
-
-### What's Left to Finish the MVP?
-
-1. **nextSong() / previousSong() Implementation** 
-   - Current: LinkedChain is singly-linked, navigation is O(n)
-   - Option A: Keep as-is, document O(n) in spec revision
-   - Option B: Switch to doubly-linked LinkedChain (add prev pointer)
-   - **Owner: Advay** (data structure)
-
-2. **Playlist State Persistence** 
-   - Save/load playlists to/from file
-   - Serialization of Song and Rule objects
-   - **Owner: Tyler** (file I/O, serialization)
-
-3. **Console UI** 
-   - Menu-driven interface
-   - Add songs, add rules, run validation, show results
-   - **Owner: Krishanth** (user interface)
-
-### Which Stretch Goals?
-
-| Goal | Status | Owner |
-|------|--------|-------|
-| Mode 2 Playlist Generation | **Dropping** | — |
-| Live Suggestions | **Dropping** | — |
-| Collaborative Playlists | **Dropping** | — |
-| Custom Rule Builder | **Considering** | Tyler |
-| Export Validation Report | **Committed** | Tyler |
-
-### New Tests Needed?
-
-For remaining MVP work:
-
-| Method | Tests Needed |
-|--------|--------------|
-| nextSong() | Normal case (next element exists), edge case (at end of playlist) |
-| previousSong() | Normal case (prev element exists), edge case (at start of playlist) |
-| File I/O load() | Valid file, corrupt file, missing file |
-| File I/O save() | Save and reload, data integrity check |
-| Console UI menu | Parse user input, execute commands, handle invalid input |
-
-### Task Assignments (Remaining Work)
-
-| Task | Owner | 
-|------|-------|
-| Doubly-Linked LinkedChain | Tyler  
-| nextSong/previousSong | Advay 
-| File I/O + persistence | Tyler 
-| Console UI + menu loop | Krishanth 
-| Integration testing | All 
-| Final submission | All 
-
----
+- `removeRule(PlaylistRule)` matches by object identity (`PlaylistRule` has no `equals`). Use `removeRuleByType`.
+- Removing a song from the library does not remove it from a playlist.
+- Generation is random with retries. A feasible `NoRepeatArtist` ordering can be reported as impossible if 1000 shuffles miss it.
+- Nothing is saved between runs.
 
 ## Attribution
 
-| Class / File | Owner | Contribution |
-|--------------|-------|--------------|
-| Song.java | Krishanth | Wrote and added null/BPM validation |
-| PlaylistRule.java | Advay | Drafted abstract base class |
-| NoRepeatArtist.java | Tyler | Implemented and noted context dependency |
-| BpmRange.java | Advay | Wrote with minBpm/maxBpm bounds |
-| NoExplicit.java | Tyler | Simple boolean flag validator |
-| MoodConsistency.java | Krishanth | Wrote with null safety |
-| ValidationResult.java | Advay | Designed and violation inner class |
-| Playlist.java | Advay | Orchestrator, validate() logic, all bad-input handling |
-| PlaylistApp.java | Krishanth | Wrote MVP-path driver|
-| PlaylistTest.java | Tyler, Advay | Test case for Playlist Methods
-| SongTest.java | Advay | Split out of the original tests and added getter/equals/toString cases |
-| PlaylistRuleTest.java | Whole team | Split out of the original tests and added null-song cases for each rule |
-| ValidationResultTest.java | Advay | Split out of the original tests and added empty/null/Violation cases |
-| LinkedChain.java | CS 2114 Staff | Provided and used as-is (unmodified) |
-| README.md | Tyler | Reflection, next steps, attribution |
-All files were given to GenAI for review and corrections. 
----
+| File | Team member(s) | How |
+|---|---|---|
+| `LinkedChain.java` | CS 2114 staff | Provided; unmodified |
+| `Song.java` | Krishanth | First version GenAI-generated; revised (nullable mood) and reviewed |
+| `PlaylistRule.java` | Advay | First version GenAI-generated; revised (null contract); `toString` added with GenAI; reviewed |
+| `NoRepeatArtist.java` | Tyler | First version GenAI-generated; context dependency found while implementing |
+| `BpmRange.java` | Advay | First version GenAI-generated; `toString` added with GenAI; reviewed |
+| `NoExplicit.java` | Tyler | First version GenAI-generated; reviewed |
+| `MoodConsistency.java` | Krishanth | First version GenAI-generated; revised (null-safe `validate`); `toString` added with GenAI |
+| `ValidationResult.java` | Advay | First version GenAI-generated; revised (null checks on `Violation`) |
+| `Playlist.java` | Advay | First version GenAI-generated; revised and reviewed; navigation, `removeRuleByType`, `getSongs`, `getRules` GenAI-generated for D4 and reviewed by [names] |
+| `SongLibrary.java` | [names] | GenAI-generated for D4; reviewed and tested by [names] |
+| `PlaylistGenerator.java` | [names] | GenAI-generated for D4; reviewed and tested by [names] |
+| `GenerationResult.java` | [names] | GenAI-generated for D4; reviewed and tested by [names] |
+| `PlaylistApp.java` | [names] | Interactive menu GenAI-generated for D4; reviewed and tested by [names] |
+| `PlaylistDemo.java` | Krishanth | Scripted driver (was `PlaylistApp` in D3); renamed |
+| `PlaylistTest.java` | Tyler, Advay | D3 tests; navigation, `removeRuleByType`, `getSongs`, `getRules` tests added for D4 (GenAI-generated, reviewed by [names]) |
+| `SongTest.java` | Advay | Split from the original tests; getter, `equals`, `toString` cases |
+| `PlaylistRuleTest.java` | Whole team | Split from the original tests; null-song cases; `toString` tests added for D4 |
+| `ValidationResultTest.java` | Advay | Split from the original tests; empty, null, and `Violation` cases |
+| `SongLibraryTest.java` | [names] | GenAI-generated for D4; run and reviewed by [names] |
+| `PlaylistGeneratorTest.java` | [names] | GenAI-generated for D4; run and reviewed by [names] |
+| `PlaylistAppTest.java` | [names] | GenAI-generated for D4 (scripted input); run and reviewed by [names] |
+| `docs/system-diagram.svg` | [names] | Hand-written SVG drafted with GenAI; checked against the code by [names] |
+| `README.md` | Tyler | Drafted with GenAI; checked against the code and rubric by [names] |
 
-## GenAI Use
+### How we used GenAI
 
-**How GenAI was used:**
-- Helped structure test cases (edge cases: empty collection, duplicates, nulls)
-- Suggested Big-O analysis justifications for LinkedChain methods
-- Caught design issue: singly-linked LinkedChain doesn't support O(1) nextSong/previousSong
-- Checked that all files for any and all errors and that the README matched rubric specs. 
+We used Claude to generate the first version of every app class and the original tests from our Deliverable 2 spec and the provided `LinkedChain.java`, and again to generate the D4 code, tests, and diagram. The team ran, read, and edited the results.
 
-**What we kept:**
-- All rule implementations as designed
-- Playlist.validate() logic (custom for spec requirements)
-- Test framework and assertions
-
-**What we changed:**
-- Deferred doubly-linked list to Phase 2 after discovering singly-linked was provided
-- Moved nextSong/previousSong to stretch goals (O(n) cost with singly-linked)
-- Added explicit context tracking for NoRepeatArtist validation
-
-**What didn't work:**
-- GenAI suggestion to auto-replace duplicate rules (we throw an exception instead so behavior is predictable)
-- Mode 2 playlist generation (decided too complex for MVP)
-
----
-
+- **Helped:** it noticed `LinkedChain` is singly-linked while our spec assumed doubly-linked; it suggested rejecting duplicate rules; it produced the edge-case tests (empty playlist, no rules, removing something not present, boundary BPM).
+- **Did not work:** the first test file did not compile where it was generated; one generated test had a wrong expected violation count, which we found by running it; the first README draft listed work outside our scope, so we rewrote it from the scope and spec.
+- **We verified:** by compiling and running all 193 tests, and by running `PlaylistApp` with bad input.
