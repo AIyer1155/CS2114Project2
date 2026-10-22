@@ -21,7 +21,7 @@ On Windows, use `;` instead of `:` between jar names.
 javac -cp junit-4.13.2.jar:hamcrest-core-1.3.jar *.java
 ```
 
-**Run the program** (interactive menu; option 14 loads 10 sample songs)
+**Run the program** (interactive menu. Option 14 loads 10 sample songs)
 ```
 java PlaylistApp
 ```
@@ -49,7 +49,7 @@ They also run from an IDE as JUnit 4 tests. If JUnit reports "No runnable method
 | 13 | Generate a playlist of a chosen length that satisfies the current rules (replaces the playlist) |
 | 14 | Load 10 sample songs |
 
-**Bad input is reported and never crashes the program.** Examples: a non-numeric, empty, or non-positive BPM re-prompts; a mood outside `[energetic, chill, focus, party]` re-prompts; empty BpmRange parameters print "All rule parameters required before adding"; a second rule of the same type is rejected; an unknown song id prints "Song not found in playlist"; next or previous at either end prints a message; an empty playlist prints "Playlist is empty"; an invalid menu choice prints the valid range.
+**Bad input is reported and never crashes the program.** Examples: a non-numeric, empty, or non-positive BPM re-prompts. A mood outside `[energetic, chill, focus, party]` re-prompts. Empty BpmRange parameters print "All rule parameters required before adding." A second rule of the same type is rejected. An unknown song id prints "Song not found in playlist." Next or previous at either end prints a message. An empty playlist prints "Playlist is empty." An invalid menu choice prints the valid range.
 
 ## Where the LinkedChain Is Used
 
@@ -57,7 +57,7 @@ They also run from an IDE as JUnit 4 tests. If JUnit reports "No runnable method
 
 | Element type | Held in | Purpose |
 |---|---|---|
-| `Song` | `Playlist`, `SongLibrary` | Playlist order; the pool of songs |
+| `Song` | `Playlist`, `SongLibrary` | Playlist order, the pool of songs |
 | `PlaylistRule` | `Playlist` | Active rules (`BpmRange`, `NoExplicit`, `MoodConsistency`, `NoRepeatArtist`) |
 | `ValidationResult.Violation` | `ValidationResult` | Which song broke which rule |
 
@@ -71,15 +71,15 @@ Dropped from the scope: live position suggestions, GUI, multiple playlists, coll
 
 | Change | Why |
 |---|---|
-| `nextSong()`, `previousSong()`, `getCurrentSong()` built on the singly-linked `LinkedChain` with `currentIndex` and `get(i)`; O(n), not the spec's O(1). Out of range throws `NoSuchElementException`. | The provided chain has no `prev` pointer. We kept it unmodified rather than rewrite it. All 18 of the spec's bad-input cases are now handled. |
+| `nextSong()`, `previousSong()`, `getCurrentSong()` built on the singly-linked `LinkedChain` with `currentIndex` and `get(i)` O(n), not the spec's O(1). Out of range throws `NoSuchElementException`. | The provided chain has no `prev` pointer. We kept it unmodified rather than rewrite it. All 18 of the spec's bad-input cases are now handled. |
 | `Playlist.removeSong` shifts `currentIndex` when a song at or before it is removed. | Otherwise the current song changes silently. Tested in `PlaylistTest`. |
 | Added `removeRuleByType(String)`, `getSongs()`, `getRules()`. | The menu needs to remove a rule by type, and the identity-based `removeRule` cannot do that. `getSongs()` and `getRules()` return copies, so callers cannot touch the chains. |
 | Added `toString()` to each rule class. | The menu prints rules, for example `BpmRange(90-150)`. |
 | Added `SongLibrary`, `PlaylistGenerator`, `GenerationResult`. | Mode 2. |
-| `PlaylistApp` is now the interactive menu. The old fixed script is `PlaylistDemo`. | D3 only ran a script; the final needs real input and re-prompting. |
-| The menu enforces the scope's mood list and re-prompts. `Song` still accepts any mood. | Matches the scope; the class stays permissive for callers. |
+| `PlaylistApp` is now the interactive menu. The old fixed script is `PlaylistDemo`. | D3 only ran a script, the final needs real input and re-prompting. |
+| The menu enforces the scope's mood list and re-prompts. `Song` still accepts any mood. | Matches the scope. The class stays permissive for callers. |
 
-Unchanged from D3: `NoRepeatArtist` is checked in `Playlist.validate()` (it needs the previous song); duplicate song ids are rejected (spec over scope); `getViolations()` returns an array.
+Unchanged from D3: `NoRepeatArtist` is checked in `Playlist.validate()` (it needs the previous song). Duplicate song ids are rejected (spec over scope). `getViolations()` returns an array.
 
 ## Big-O
 
@@ -87,9 +87,9 @@ n = songs, r = rules, v = violations.
 
 | Method | Actual | Note |
 |---|---|---|
-| `Playlist.addSong` | O(n) | `contains()` scan plus `addToEnd()`; spec said O(1) |
+| `Playlist.addSong` | O(n) | `contains()` scan plus `addToEnd()` spec said O(1) |
 | `Playlist.removeSong` | O(n) | index scan, then `remove(T)` |
-| `Playlist.nextSong`, `previousSong`, `getCurrentSong` | O(n) | `get(i)` walks the chain; spec said O(1) |
+| `Playlist.nextSong`, `previousSong`, `getCurrentSong` | O(n) | `get(i)` walks the chain, spec said O(1) |
 | `Playlist.addRule`, `removeRule`, `removeRuleByType` | O(r) | |
 | `Playlist.getSongs`, `getRules` | O(n), O(r) | copy |
 | `Playlist.validate` | O(n·r + v²) | each violation costs O(v) via `addToEnd()` |
@@ -107,7 +107,7 @@ n = songs, r = rules, v = violations.
 
 | File | Team member(s) | How |
 |---|---|---|
-| `LinkedChain.java` | CS 2114 staff | Provided; unmodified |
+| `LinkedChain.java` | CS 2114 staff | Provided. |
 | `Song.java` | Krishanth | First version GenAI-generated; revised (nullable mood) and reviewed |
 | `PlaylistRule.java` | Advay | First version GenAI-generated; revised (null contract); `toString` added with GenAI; reviewed |
 | `NoRepeatArtist.java` | Tyler | First version GenAI-generated; context dependency found while implementing |
@@ -115,26 +115,26 @@ n = songs, r = rules, v = violations.
 | `NoExplicit.java` | Tyler | First version GenAI-generated; reviewed |
 | `MoodConsistency.java` | Krishanth | First version GenAI-generated; revised (null-safe `validate`); `toString` added with GenAI |
 | `ValidationResult.java` | Advay | First version GenAI-generated; revised (null checks on `Violation`) |
-| `Playlist.java` | Advay | First version GenAI-generated; revised and reviewed; navigation, `removeRuleByType`, `getSongs`, `getRules` GenAI-generated for D4 and reviewed by [names] |
-| `SongLibrary.java` | [names] | GenAI-generated for D4; reviewed and tested by [names] |
-| `PlaylistGenerator.java` | [names] | GenAI-generated for D4; reviewed and tested by [names] |
-| `GenerationResult.java` | [names] | GenAI-generated for D4; reviewed and tested by [names] |
-| `PlaylistApp.java` | [names] | Interactive menu GenAI-generated for D4; reviewed and tested by [names] |
+| `Playlist.java` | Advay | First version GenAI-generated; revised and reviewed; navigation, `removeRuleByType`, `getSongs`, `getRules` GenAI-generated for D4 and reviewed by Advay |
+| `SongLibrary.java` | Tyler | GenAI-generated for D4; reviewed and tested by Tyler |
+| `PlaylistGenerator.java` | Tyler | GenAI-generated for D4; reviewed and tested by Tyler |
+| `GenerationResult.java` | Krishanth | GenAI-generated for D4; reviewed and tested by Krishanth |
+| `PlaylistApp.java` | Krishanth | Interactive menu GenAI-generated for D4; reviewed and tested by Krishanth |
 | `PlaylistDemo.java` | Krishanth | Scripted driver (was `PlaylistApp` in D3); renamed |
-| `PlaylistTest.java` | Tyler, Advay | D3 tests; navigation, `removeRuleByType`, `getSongs`, `getRules` tests added for D4 (GenAI-generated, reviewed by [names]) |
+| `PlaylistTest.java` | Tyler, Advay | D3 tests; navigation, `removeRuleByType`, `getSongs`, `getRules` tests added for D4 (GenAI-generated, reviewed by Tyler) |
 | `SongTest.java` | Advay | Split from the original tests; getter, `equals`, `toString` cases |
 | `PlaylistRuleTest.java` | Whole team | Split from the original tests; null-song cases; `toString` tests added for D4 |
 | `ValidationResultTest.java` | Advay | Split from the original tests; empty, null, and `Violation` cases |
-| `SongLibraryTest.java` | [names] | GenAI-generated for D4; run and reviewed by [names] |
-| `PlaylistGeneratorTest.java` | [names] | GenAI-generated for D4; run and reviewed by [names] |
-| `PlaylistAppTest.java` | [names] | GenAI-generated for D4 (scripted input); run and reviewed by [names] |
-| `docs/system-diagram.svg` | [names] | Hand-written SVG drafted with GenAI; checked against the code by [names] |
-| `README.md` | Tyler | Drafted with GenAI; checked against the code and rubric by [names] |
+| `SongLibraryTest.java` | Tyler | GenAI-generated for D4; run and reviewed by Tyler |
+| `PlaylistGeneratorTest.java` | Krishanth | GenAI-generated for D4; run and reviewed by Krishanth |
+| `PlaylistAppTest.java` | Advay | GenAI-generated for D4 (scripted input); run and reviewed by Advay |
+| `docs/system-diagram.svg` | Krishanth | SVG drafted and checked against the code |
+| `README.md` | Tyler | Created and checked with GenAI|
 
 ### How we used GenAI
 
 We used Claude to generate the first version of every app class and the original tests from our Deliverable 2 spec and the provided `LinkedChain.java`, and again to generate the D4 code, tests, and diagram. The team ran, read, and edited the results.
 
-- **Helped:** it noticed `LinkedChain` is singly-linked while our spec assumed doubly-linked; it suggested rejecting duplicate rules; it produced the edge-case tests (empty playlist, no rules, removing something not present, boundary BPM).
-- **Did not work:** the first test file did not compile where it was generated; one generated test had a wrong expected violation count, which we found by running it; the first README draft listed work outside our scope, so we rewrote it from the scope and spec.
+- **Helped:** it noticed `LinkedChain` is singly-linked while our spec assumed doubly-linked, it suggested rejecting duplicate rules, it produced the edge-case tests (empty playlist, no rules, removing something not present, boundary BPM).
+- **Did not work:** the first test file did not compile where it was generated. One generated test had a wrong expected violation count, which we found by running it. The first README draft listed work outside our scope, so we rewrote it from the scope and spec.
 - **We verified:** by compiling and running all 193 tests, and by running `PlaylistApp` with bad input.
