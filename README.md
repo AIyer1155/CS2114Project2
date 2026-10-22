@@ -49,7 +49,7 @@ They also run from an IDE as JUnit 4 tests. If JUnit reports "No runnable method
 | 13 | Generate a playlist of a chosen length that satisfies the current rules (replaces the playlist) |
 | 14 | Load 10 sample songs |
 
-**Bad input is reported and never crashes the program.** Examples: a non-numeric, empty, or non-positive BPM re-prompts. A mood outside `[energetic, chill, focus, party]` re-prompts. Empty BpmRange parameters print "All rule parameters required before adding." A second rule of the same type is rejected. An unknown song id prints "Song not found in playlist." Next or previous at either end prints a message. An empty playlist prints "Playlist is empty." An invalid menu choice prints the valid range.
+**Bad input is reported.** Examples: a non-numeric, empty, or non-positive BPM re-prompts. A mood outside `[energetic, chill, focus, party]` re-prompts. Empty BpmRange parameters print "All rule parameters required before adding." A second rule of the same type is rejected. An unknown song id prints "Song not found in playlist." Next or previous at either end prints a message. An empty playlist prints "Playlist is empty." An invalid menu choice prints the valid range.
 
 ## Where the LinkedChain Is Used
 
@@ -108,33 +108,33 @@ n = songs, r = rules, v = violations.
 | File | Team member(s) | How |
 |---|---|---|
 | `LinkedChain.java` | CS 2114 staff | Provided. |
-| `Song.java` | Krishanth | First version GenAI-generated; revised (nullable mood) and reviewed |
-| `PlaylistRule.java` | Advay | First version GenAI-generated; revised (null contract); `toString` added with GenAI; reviewed |
-| `NoRepeatArtist.java` | Tyler | First version GenAI-generated; context dependency found while implementing |
-| `BpmRange.java` | Advay | First version GenAI-generated; `toString` added with GenAI; reviewed |
-| `NoExplicit.java` | Tyler | First version GenAI-generated; reviewed |
-| `MoodConsistency.java` | Krishanth | First version GenAI-generated; revised (null-safe `validate`); `toString` added with GenAI |
-| `ValidationResult.java` | Advay | First version GenAI-generated; revised (null checks on `Violation`) |
-| `Playlist.java` | Advay | First version GenAI-generated; revised and reviewed; navigation, `removeRuleByType`, `getSongs`, `getRules` GenAI-generated for D4 and reviewed by Advay |
-| `SongLibrary.java` | Tyler | GenAI-generated for D4; reviewed and tested by Tyler |
-| `PlaylistGenerator.java` | Tyler | GenAI-generated for D4; reviewed and tested by Tyler |
-| `GenerationResult.java` | Krishanth | GenAI-generated for D4; reviewed and tested by Krishanth |
-| `PlaylistApp.java` | Krishanth | Interactive menu GenAI-generated for D4; reviewed and tested by Krishanth |
+| `Song.java` | Krishanth | First version; GenAI- revised (nullable mood) and reviewed |
+| `PlaylistRule.java` | Advay | First version GenAI- revised (null contract); `toString` added with GenAI review|
+| `NoRepeatArtist.java` | Tyler | First version GenAI-revised; context dependency found while implementing |
+| `BpmRange.java` | Advay | First version GenAI-revised; `toString` added with GenAI review|
+| `NoExplicit.java` | Tyler | First version GenAI-revised |
+| `MoodConsistency.java` | Krishanth | First version GenAI-revised; (null-safe `validate`); `toString` added with GenAI |
+| `ValidationResult.java` | Advay | First version GenAI-revised; (null checks on `Violation`) |
+| `Playlist.java` | Advay | First version GenAI-revised; navigation, `removeRuleByType`, `getSongs`, `getRules` GenAI-revised for D4 and reviewed |
+| `SongLibrary.java` | Tyler | GenAI-revised for D4; reviewed and tested by Tyler |
+| `PlaylistGenerator.java` | Tyler | GenAI-revised for D4; reviewed and tested by Tyler |
+| `GenerationResult.java` | Krishanth | GenAI-revised for D4; reviewed and tested by Krishanth |
+| `PlaylistApp.java` | Krishanth | Interactive menu GenAI-revised for D4; reviewed and tested by Krishanth |
 | `PlaylistDemo.java` | Krishanth | Scripted driver (was `PlaylistApp` in D3); renamed |
-| `PlaylistTest.java` | Tyler, Advay | D3 tests; navigation, `removeRuleByType`, `getSongs`, `getRules` tests added for D4 (GenAI-generated, reviewed by Tyler) |
+| `PlaylistTest.java` | Tyler, Advay | D3 tests; navigation, `removeRuleByType`, `getSongs`, `getRules` tests added for D4 (GenAI-revised, reviewed by Tyler) |
 | `SongTest.java` | Advay | Split from the original tests; getter, `equals`, `toString` cases |
 | `PlaylistRuleTest.java` | Whole team | Split from the original tests; null-song cases; `toString` tests added for D4 |
 | `ValidationResultTest.java` | Advay | Split from the original tests; empty, null, and `Violation` cases |
-| `SongLibraryTest.java` | Tyler | GenAI-generated for D4; run and reviewed by Tyler |
-| `PlaylistGeneratorTest.java` | Krishanth | GenAI-generated for D4; run and reviewed by Krishanth |
-| `PlaylistAppTest.java` | Advay | GenAI-generated for D4 (scripted input); run and reviewed by Advay |
+| `SongLibraryTest.java` | Tyler | GenAI-revised for D4; run and reviewed by Tyler |
+| `PlaylistGeneratorTest.java` | Krishanth | GenAI-revised for D4; run and reviewed by Krishanth |
+| `PlaylistAppTest.java` | Advay | GenAI-revised for D4 (scripted input); run and reviewed by Advay |
 | `docs/system-diagram.svg` | Krishanth | SVG drafted and checked against the code |
 | `README.md` | Tyler | Created and checked with GenAI|
 
 ### How we used GenAI
 
-We used Claude to generate the first version of every app class and the original tests from our Deliverable 2 spec and the provided `LinkedChain.java`, and again to generate the D4 code, tests, and diagram. The team ran, read, and edited the results.
+We used Claude to review the first version of every app class and the original tests from our Deliverable 2 spec and the provided `LinkedChain.java`, and again to regenerate the D4 code, tests, and diagram with suggestions and fixes. The team ran, read, and edited the results.
 
 - **Helped:** it noticed `LinkedChain` is singly-linked while our spec assumed doubly-linked, it suggested rejecting duplicate rules, it produced the edge-case tests (empty playlist, no rules, removing something not present, boundary BPM).
-- **Did not work:** the first test file did not compile where it was generated. One generated test had a wrong expected violation count, which we found by running it. The first README draft listed work outside our scope, so we rewrote it from the scope and spec.
+- **Did not work:** the first test file did not compile where it was generated. One generated test had a wrong expected violation count, which we found by running it.
 - **We verified:** by compiling and running all 193 tests, and by running `PlaylistApp` with bad input.
